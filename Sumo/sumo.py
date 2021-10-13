@@ -20,6 +20,9 @@ MatRadius = 300
 bounce = 4
 speed = 0.1
 
+debugMode = False
+debugLastPressed = False
+
 class Player:
     def __init__(self, x, y, color):
         self.x = x
@@ -72,8 +75,13 @@ class Player:
             self.yVel = math.sin(angle) * bounce
 
         # Leaving the circle
-        if dist(self.x, self.y, windowWidth/2, windowHeight/2) > MatRadius and not otherPlayer.lost:
-            self.lost = True
+        lineToCenterColor = (100, 100, 100)
+        if dist(self.x, self.y, windowWidth/2, windowHeight/2) > MatRadius:
+            lineToCenterColor = (0, 255, 0)
+            if not otherPlayer.lost:
+                self.lost = True
+        if debugMode:
+            pygame.draw.line(win, lineToCenterColor, (windowWidth/2, windowHeight/2), (self.x, self.y), 4)
 
 
 player1 = Player(windowWidth/2 - MatRadius/2, windowHeight/2, (255, 0, 0))
@@ -113,6 +121,12 @@ while running:
         player2 = Player(windowWidth/2 + 150, windowHeight/2, (0, 0, 255))
         redTXT = font.render("", False, (90, 90, 90))
         blueTXT = font.render("", False, (90, 90, 90))
+    elif keys[pygame.K_t]: # Changing to debug mode
+        if not debugLastPressed:
+            debugMode = not debugMode
+        debugLastPressed = True
+    else:
+        debugLastPressed = False
 
     win.fill((255, 255, 255))
 
@@ -121,6 +135,9 @@ while running:
 
     player1.draw()
     player2.draw()
+
+    if debugMode: # drawing line between players
+        pygame.draw.line(win, (0, 0, 0), (player1.x, player1.y), (player2.x, player2.y), 4)
 
     player1.update(player2)
     player2.update(player1)
