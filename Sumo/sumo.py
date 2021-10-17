@@ -17,11 +17,12 @@ def dist(x1, y1, x2, y2):
     return ((x1-x2)**2 + (y1-y2)**2)**0.5
 
 MatRadius = 300
-bounce = 4
+bounce = 5
 speed = 0.1
 
 debugMode = False
 debugLastPressed = False
+frozen = False
 
 class Player:
     def __init__(self, x, y, color):
@@ -41,38 +42,44 @@ class Player:
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
     def update(self, otherPlayer):
+        global frozen
         # Moving by velocities
-        if self.radius < self.x + self.xVel < windowWidth - self.radius:
-            self.x += self.xVel
-        else:
-            self.xVel = 0
-        
-        if self.radius < self.y + self.yVel < windowHeight - self.radius:
-            self.y += self.yVel
-        else:
-            self.yVel = 0
+        if not frozen:
+            if self.radius < self.x + self.xVel < windowWidth - self.radius:
+                self.x += self.xVel
+            else:
+                self.xVel = 0
+            
+            if self.radius < self.y + self.yVel < windowHeight - self.radius:
+                self.y += self.yVel
+            else:
+                self.yVel = 0
 
-        # x drag
-        if self.xVel >= speed:
-            self.xVel -= speed/4
-        elif self.xVel <= -speed:
-            self.xVel += speed/4
-        else:
-            self.xVel = 0
+            # x drag
+            if self.xVel >= speed:
+                self.xVel -= speed/4
+            elif self.xVel <= -speed:
+                self.xVel += speed/4
+            else:
+                self.xVel = 0
 
-        # y drag
-        if self.yVel >= speed:
-            self.yVel -= speed/4
-        elif self.yVel <= -speed:
-            self.yVel += speed/4
+            # y drag
+            if self.yVel >= speed:
+                self.yVel -= speed/4
+            elif self.yVel <= -speed:
+                self.yVel += speed/4
+            else:
+                self.yVel = 0
         else:
-            self.yVel = 0
+            a = math.atan2(self.y - otherPlayer.y, self.x - otherPlayer.x)
+            pygame.draw.line(win, self.color, (self.x, self.y), (math.cos(a) * bounce * 50 + self.x, math.sin(a) * bounce * 50 + self.y), 4)
 
         # Collision with other players
         if dist(self.x, self.y, otherPlayer.x, otherPlayer.y) <= self.radius + otherPlayer.radius:
             angle = math.atan2(self.y - otherPlayer.y, self.x - otherPlayer.x)
             self.xVel = math.cos(angle) * bounce
             self.yVel = math.sin(angle) * bounce
+            frozen = debugMode
 
         # Leaving the circle
         lineToCenterColor = (100, 100, 100)
@@ -121,6 +128,8 @@ while running:
         player2 = Player(windowWidth/2 + 150, windowHeight/2, (0, 0, 255))
         redTXT = font.render("", False, (90, 90, 90))
         blueTXT = font.render("", False, (90, 90, 90))
+    elif keys[pygame.K_p]:
+        frozen = False
     elif keys[pygame.K_t]: # Changing to debug mode
         if not debugLastPressed:
             debugMode = not debugMode
